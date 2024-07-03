@@ -1,5 +1,7 @@
 """Representation of a OpenSurplusManager Device."""
 
+import asyncio
+
 from pyosmanager import APIError, OSMClient
 
 
@@ -16,25 +18,31 @@ class OSMDevice:
         self.max_consumption: float | None = None
         self.expected_consumption: float | None = None
         self.cooldown: int | None = None
+        self._initialized = False
+
+    async def wait_for_initialization(self):
+        """Wait until the core is initialized."""
+        while not self._initialized:
+            await asyncio.sleep(1)
 
     async def async_update(self):
         """Update the device."""
-        if self.consumption is None:
-            try:
-                device = await self.client.get_device(self.device_name)
-                self.consumption = device.consumption
-                self.powered = device.powered
-                self.enabled = device.enabled
-                self.max_consumption = device.max_consumption
-                self.expected_consumption = device.expected_consumption
-                self.cooldown = device.cooldown
-            except APIError:
-                self.consumption = None
-                self.powered = None
-                self.enabled = None
-                self.max_consumption = None
-                self.expected_consumption = None
-                self.cooldown = None
+        try:
+            device = await self.client.get_device(self.device_name)
+            self.consumption = device.consumption
+            self.powered = device.powered
+            self.enabled = device.enabled
+            self.max_consumption = device.max_consumption
+            self.expected_consumption = device.expected_consumption
+            self.cooldown = device.cooldown
+            self._initialized = True
+        except APIError:
+            self.consumption = None
+            self.powered = None
+            self.enabled = None
+            self.max_consumption = None
+            self.expected_consumption = None
+            self.cooldown = None
 
     async def async_set_max_consumption(self, value: float):
         """Update the max consumption."""

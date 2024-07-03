@@ -18,7 +18,6 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 
-# TODO adjust the data schema to the data that you need
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HOST): str,
@@ -31,13 +30,6 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
 
     Data has the keys from STEP_USER_DATA_SCHEMA with values provided by the user.
     """
-    # TODO validate the data can be used to set up a connection.
-
-    # If your PyPI package is not built with async, pass your methods
-    # to the executor:
-    # await hass.async_add_executor_job(
-    #     your_validate_func, data[CONF_USERNAME], data[CONF_PASSWORD]
-    # )
     if len(data[CONF_HOST]) < 3:
         raise InvalidHost
 
@@ -48,12 +40,6 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
         if not result:
             raise CannotConnect
 
-    # If you cannot connect:
-    # throw CannotConnect
-    # If the authentication is wrong:
-    # InvalidAuth
-
-    # Return info that you want to store in the config entry.
     return {"title": data[CONF_HOST]}
 
 

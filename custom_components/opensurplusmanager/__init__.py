@@ -2,46 +2,44 @@
 
 from __future__ import annotations
 
+import asyncio
+
 from pyosmanager import OSMClient
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
+from .const import DOMAIN, SEMAPHORE
+from .coordinator import OSMConfigEntry, OSMCoordinator
+from .core import OSMCore
+from .device import OSMDevice
 
-# TODO List the platforms that you want to support.
-# For your initial PR, limit it to 1 platform.
 PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.NUMBER]
 
-# TODO Create ConfigEntry type alias with API object
-# TODO Rename type alias and update all entry annotations
-type OSMConfigEntry = ConfigEntry[OSMClient]  # noqa: F821
 
-
-# TODO Update entry annotation
 async def async_setup_entry(hass: HomeAssistant, entry: OSMConfigEntry) -> bool:
     """Set up Open Surplus Manager from a config entry."""
-
-    # TODO 1. Create API instance
+    if SEMAPHORE not in hass.data.setdefault(DOMAIN, {}):
+        hass.data.setdefault(DOMAIN, {})[SEMAPHORE] = asyncio.Semaphore(1)
     client = OSMClient(entry.data["host"])
 
-    # TODO 2. Validate the API connection (and authentication)
     result = await client.is_healthy()
     if not result:
         return False
-    # TODO 3. Store an API object for your platforms to access
-    # entry.runtime_data = MyAPI(...)
-    entry.runtime_data = client
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = client
+
+    devices = await client.get_devices()
+    devices = [OSMDevice(client, device.name) for device in devices]
+    core = OSMCore(client)
+    coordinator = OSMCoordinator(client, core, devices)
+
+    entry.runtime_data = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
 
-# TODO Update entry annotation
 async def async_unload_entry(hass: HomeAssistant, entry: OSMConfigEntry) -> bool:
     """Unload a config entry."""
-    await entry.runtime_data.close()
+    await entry.runtime_data.client.close()
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

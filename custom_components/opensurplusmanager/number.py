@@ -1,34 +1,31 @@
 """Support for Open Surplus Manager number entities."""
 
-from pyosmanager import OSMClient
-
 from homeassistant.components.number import NumberDeviceClass, NumberEntity
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, UnitOfPower, UnitOfTime
-from homeassistant.core import CoreState
+from homeassistant.core import CoreState, HomeAssistant
 
 from .const import DOMAIN
+from .coordinator import OSMConfigEntry
 from .core import OSMCore
 from .device import OSMDevice
 
 
-async def async_setup_entry(hass, config_entry, async_add_entities):
+async def async_setup_entry(
+    hass: HomeAssistant, entry: OSMConfigEntry, async_add_entities
+):
     """Add sensors for passed config_entry in HA."""
-    client = hass.data[DOMAIN][config_entry.entry_id]
-    client: OSMClient
-
-    core = OSMCore(client)
+    coordinator = entry.runtime_data
 
     entities = [
-        GridMarginNumber(core),
-        SurplusMarginNumber(core),
-        IdlePowerNumber(core),
+        GridMarginNumber(coordinator.core),
+        SurplusMarginNumber(coordinator.core),
+        IdlePowerNumber(coordinator.core),
     ]
 
-    devices = await client.get_devices()
-    for device in devices:
-        entities.append(DeviceMaxConsumptionNumber(OSMDevice(client, device.name)))
-        entities.append(DeviceExpectedConsumptionNumber(OSMDevice(client, device.name)))
-        entities.append(DeviceCooldownNumber(OSMDevice(client, device.name)))
+    for device in coordinator.devices:
+        entities.append(DeviceMaxConsumptionNumber(device))
+        entities.append(DeviceExpectedConsumptionNumber(device))
+        entities.append(DeviceCooldownNumber(device))
 
     async_add_entities(entities)
 
@@ -59,12 +56,8 @@ class GridMarginNumber(NumberEntity):
 
     async def first_update(self, _=None) -> None:
         """Run first update and write state."""
-        await self.async_update()
+        await self._core.wait_for_initialization()
         self.async_write_ha_state()
-
-    async def async_update(self) -> None:
-        """Update the sensor."""
-        await self._core.async_update()
 
     async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
@@ -114,12 +107,8 @@ class SurplusMarginNumber(NumberEntity):
 
     async def first_update(self, _=None) -> None:
         """Run first update and write state."""
-        await self.async_update()
+        await self._core.wait_for_initialization()
         self.async_write_ha_state()
-
-    async def async_update(self) -> None:
-        """Update the sensor."""
-        await self._core.async_update()
 
     async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
@@ -169,12 +158,8 @@ class IdlePowerNumber(NumberEntity):
 
     async def first_update(self, _=None) -> None:
         """Run first update and write state."""
-        await self.async_update()
+        await self._core.wait_for_initialization()
         self.async_write_ha_state()
-
-    async def async_update(self) -> None:
-        """Update the sensor."""
-        await self._core.async_update()
 
     async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
@@ -224,12 +209,8 @@ class DeviceMaxConsumptionNumber(NumberEntity):
 
     async def first_update(self, _=None) -> None:
         """Run first update and write state."""
-        await self.async_update()
+        await self._device.wait_for_initialization()
         self.async_write_ha_state()
-
-    async def async_update(self) -> None:
-        """Update the sensor."""
-        await self._device.async_update()
 
     async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
@@ -279,12 +260,8 @@ class DeviceExpectedConsumptionNumber(NumberEntity):
 
     async def first_update(self, _=None) -> None:
         """Run first update and write state."""
-        await self.async_update()
+        await self._device.wait_for_initialization()
         self.async_write_ha_state()
-
-    async def async_update(self) -> None:
-        """Update the sensor."""
-        await self._device.async_update()
 
     async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
@@ -334,12 +311,8 @@ class DeviceCooldownNumber(NumberEntity):
 
     async def first_update(self, _=None) -> None:
         """Run first update and write state."""
-        await self.async_update()
+        await self._device.wait_for_initialization()
         self.async_write_ha_state()
-
-    async def async_update(self) -> None:
-        """Update the sensor."""
-        await self._device.async_update()
 
     async def async_set_native_value(self, value: int) -> None:
         """Update the current value."""
