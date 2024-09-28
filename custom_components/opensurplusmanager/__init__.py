@@ -17,6 +17,7 @@ PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.N
 
 async def async_setup_entry(hass: HomeAssistant, entry: OSMConfigEntry) -> bool:
     """Set up Open Surplus Manager from a config entry."""
+    client = OSMClient(entry.data["host"])
 
     result = await client.is_healthy()
     if not result:
