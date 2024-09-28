@@ -4,12 +4,10 @@ from __future__ import annotations
 
 import asyncio
 
-from pyosmanager import OSMClient
-
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from pyosmanager import OSMClient
 
-from .const import DOMAIN, SEMAPHORE
 from .coordinator import OSMConfigEntry, OSMCoordinator
 from .core import OSMCore
 from .device import OSMDevice
@@ -19,9 +17,6 @@ PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.N
 
 async def async_setup_entry(hass: HomeAssistant, entry: OSMConfigEntry) -> bool:
     """Set up Open Surplus Manager from a config entry."""
-    if SEMAPHORE not in hass.data.setdefault(DOMAIN, {}):
-        hass.data.setdefault(DOMAIN, {})[SEMAPHORE] = asyncio.Semaphore(1)
-    client = OSMClient(entry.data["host"])
 
     result = await client.is_healthy()
     if not result:
