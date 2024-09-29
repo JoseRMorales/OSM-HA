@@ -2,13 +2,13 @@
   "domain": "opensurplusmanager",
   "name": "Open Surplus Manager",
   "codeowners": [
-    "@JoseRa9"
+    "@JoseRMorales"
   ],
   "config_flow": true,
   "single_config_entry": true,
   "dependencies": [],
-  "issue_tracker": "https://github.com/JoseRa9/OSM-HA/issues",
-  "documentation": "https://github.com/JoseRa9/OSM-HA",
+  "issue_tracker": "https://github.com/JoseRMorales/OSM-HA/issues",
+  "documentation": "https://github.com/JoseRMorales/OSM-HA",
   "integration_type": "hub",
   "iot_class": "local_polling",
   "requirements": [
