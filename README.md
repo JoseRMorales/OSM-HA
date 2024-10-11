@@ -2,6 +2,8 @@
 
 This is a custom integration for Home Assistant that allows you to manage some data from your Open Surplus Manager instance.
 
+This repo is only about the integration, for info about Open Surplus Manager see the project [repository](https://github.com/JoseRMorales/OpenSurplusManager)
+
 ## Installation
 
 ### Manual
